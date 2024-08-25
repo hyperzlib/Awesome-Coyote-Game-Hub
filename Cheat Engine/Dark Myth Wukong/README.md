@@ -9,7 +9,7 @@ Notice: This version is not fully tested and may trigger events by mistake. If y
 * Name: Dark Myth Wukong
 * 游戏名: 黑神话：悟空
 * Steam: [黑神话：悟空](https://store.steampowered.com/app/2358720/)
-* Tested Version: v1.2.2
+* Tested Version: v1.0.7.14712
 
 ## Credits
 

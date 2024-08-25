@@ -1,5 +1,9 @@
 # Dark Myth Wukong
 
+Notice: This version is not fully tested and may trigger events by mistake. If you encounter problems reading health values, try reopening the game.
+
+注意：此版本仍未完全测试，可能会误触发事件。如果遇到无法读取生命值的问题，请尝试重新打开游戏。
+
 ## Game Information
 
 * Name: Dark Myth Wukong

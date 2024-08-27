@@ -2,6 +2,40 @@
 <CheatTable CheatEngineTableVersion="45">
   <CheatEntries>
     <CheatEntry>
+      <ID>357015</ID>
+      <Description>"自动选择进程"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+  if(getCEVersion() &lt; 7.3) then
+    ShowMessage('Warning! CE version should be 7.3 or above')
+    error()
+  end
+  ---------------
+ local pcss = 'b1-Win64-Shipping.exe'
+ local msg = '进程 b1-Win64-Shipping.exe 未找到!'
+ OpenProcess(pcss)
+  if (readInteger(process) == readInteger(pcss)) and (readInteger(process) ~= nil) then
+       ShowMessage(msg)
+    error()
+  else
+   getMainForm().caption = "Table Created By Tuuuup, Modified By hyperzlib"
+    end
+
+{$asm}
+//LuaCall(function cycleFullCompact(sender,force) local state = not(compactmenuitem.Caption == 'Compact View Mode'); if force~=nil then state = not force end; compactmenuitem.Caption = state and 'Compact View Mode' or 'Full View Mode'; getMainForm().Splitter1.Visible = state; getMainForm().Panel4.Visible    = state; getMainForm().Panel5.Visible    = state; end; function addCompactMenu() if compactmenualreadyexists then return end; local parent = getMainForm().Menu.Items; compactmenuitem = createMenuItem(parent); parent.add(compactmenuitem); compactmenuitem.Caption = 'Compact View Mode'; compactmenuitem.OnClick = cycleFullCompact; compactmenualreadyexists = 'yes'; end; addCompactMenu(); cycleFullCompact(nil,true))
+[DISABLE]
+{$lua}
+if monopipe~=nil then monopipe.Destroy() ; monopipe=nil end  -- mono disable
+{$asm}
+//LuaCall(cycleFullCompact(nil,false))
+
+
+
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
       <ID>356991</ID>
       <Description>"开启 (必须在出现角色后勾选)"</Description>
       <Options moHideChildren="1"/>
@@ -260,7 +294,6 @@ local function on_health_changed(memoryrecord, oldvalue, newvalue)
         end
         -- 死亡时一键开火
         print("[Event] 死亡")
-        print("[Event] 一键开火：" .. coyote_fire_death)
         coyote_fire(coyote_fire_death, coyote_fire_time_death, true)
         return
     elseif newvalue ~= 0 and newvalue == var_max_health and oldvalue ~= var_max_health then
@@ -342,7 +375,7 @@ end
         </CheatEntry>
         <CheatEntry>
           <ID>357014</ID>
-          <Description>"角色信息"</Description>
+          <Description>"角色信息 (这条和以下都不要勾选)"</Description>
           <ShowAsSigned>0</ShowAsSigned>
           <GroupHeader>1</GroupHeader>
           <Address>pBase</Address>

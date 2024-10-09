@@ -10,4 +10,5 @@ A collection of cheat tables, mods that work with [Coyote-Game-Hub](https://gith
 | --- | --- |
 | 雀魂麻将 | [Coyote-Majsoul](https://github.com/hyperzlib/Coyote-Majsoul) |
 | Buckshot Roulette / 恶魔轮盘 | [Buckshot Roulette Cheat Table](Cheat%20Engine/Buckshot%20Roulette) |
+| Shawarma Legend / 沙威玛传奇 | [Shawarma Legend Cheat Table](Cheat%20Engine/Shawarma%20Legend) |
 | 黑神话：悟空 | [Dark Myth Wukong Cheat Table](Cheat%20Engine/Dark%20Myth%20Wukong) |

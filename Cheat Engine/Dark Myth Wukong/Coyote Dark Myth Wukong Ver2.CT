@@ -294,7 +294,10 @@ local function on_health_changed(memoryrecord, oldvalue, newvalue)
         end
         -- 死亡时一键开火
         print("[Event] 死亡")
-        coyote_fire(coyote_fire_death, coyote_fire_time_death, true)
+        createNativeThread(function()
+            sleep(100)
+            coyote_fire(coyote_fire_death, coyote_fire_time_death, true)
+        end)
         return
     elseif newvalue ~= 0 and newvalue == var_max_health and oldvalue ~= var_max_health then
         -- 血量回满
@@ -344,7 +347,9 @@ local function init_listener()
     health_memoryview.OnValueChanged = on_health_changed
     if health_memoryview.Value ~= "??" then
         prev_health = tonumber(health_memoryview.Value) or var_max_health
-        print("生命值: " .. prev_health)
+        print("当前生命值: " .. prev_health .. " (如果此数据显示正常说明启动成功)")
+        print("在此窗口菜单的“视图”中取消勾选“显示\"打印\"”可以防止此窗口反复跳出")
+        print("建议不要将Cheat Engine最小化，以防止延迟")
     end
 end
 

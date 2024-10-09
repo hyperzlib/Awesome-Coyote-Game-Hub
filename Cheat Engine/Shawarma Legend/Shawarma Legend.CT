@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="45">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1</ID>
+      <Description>"启动郊狼（双击右侧&lt;脚本&gt;更改电量配置）"</Description>
+      <Options moHideChildren="1" moActivateChildrenAsWell="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+{$lua}
+local coyote_controller_url = "http://127.0.0.1:8920/" -- 控制器地址，本地使用时无需修改
+local coyote_target_client_id = "all" -- 填写你的客户端ID，本地使用时使用“all”即可
+
+-- 规则配置：
+-- 基本规则是“操作+数值”，操作包括“增加”、“减少”、“设置”、“一键开火”
+-- 例如“增加5”表示增加5强度，“减少5”表示减少5强度
+-- “一键开火15 10”表示一键开火15强度，持续10秒
+local coyote_rules = {
+    -- 一天结束（默认电量）
+    day_over = { "设置10" },
+    -- 顾客没耐心离开时
+    customer_leave = { "增加5", "一键开火15 5" },
+    -- 卷饼失误（没到100%时)
+    mistake = { "增加3", "一键开火15 5" },
+    -- 烤糊了
+    burnt = { "一键开火15 5" },
+    -- 顾客满意离开
+    fine = { "减少1" },
+}
+
+-------------------------------------------------------------------------------
+-- 以下为 Coyote-Streaming-Widget SDK
+-------------------------------------------------------------------------------
+-- 更新游戏配置，参考api.md中的“设置游戏强度配置”
+-- @param param_str string query格式的参数字符串
+local function coyote_update_game_config(param_str)
+    local http = getInternet()
+
+    local api_url = coyote_controller_url .. "api/game/" .. coyote_target_client_id .. "/strength_config"
+    local response = http.postURL(api_url, param_str)
+
+    return response
+end
+
+-- 增加强度
+-- @param value number 强度值
+local function coyote_add_strength(value)
+    local param_str = "strength.add=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 减少强度
+-- @param value number 强度值
+local function coyote_sub_strength(value)
+    local param_str = "strength.sub=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 设置强度
+-- @param value number 强度值
+local function coyote_set_strength(value)
+    local param_str = "strength.set=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 增加随机强度
+-- @param value number 强度值
+local function coyote_add_random_strength(value)
+    local param_str = "randomStrength.add=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 减少随机强度
+-- @param value number 强度值
+local function coyote_sub_random_strength(value)
+    local param_str = "randomStrength.sub=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 设置随机强度
+-- @param value number 强度值
+local function coyote_set_random_strength(value)
+    local param_str = "randomStrength.set=" .. value
+    return coyote_update_game_config(param_str)
+end
+
+-- 一键开火
+-- @param strength number 强度值
+local function coyote_fire(strength, time)
+    time = time or 5
+    time = time * 1000
+    local http = getInternet()
+    local param_str = "strength=" .. strength .. "&amp;time=" .. time
+    local api_url = coyote_controller_url .. "api/game/" .. coyote_target_client_id .. "/fire"
+    local response = http.postURL(api_url, param_str)
+    return response
+end
+
+-------------------------------------------------------------------------------
+-- 以下为Cheat Engine脚本部分
+-------------------------------------------------------------------------------
+
+-- 判断字符串是否以指定字符串开头
+---@param str string
+---@param start string
+---@return boolean
+function string.starts_with(str, start)
+    return str:sub(1, #start) == start
+end
+
+-- 切割字符串
+---@param str string
+---@param sep string
+function string.split(str, sep)
+    local sep, fields = sep or ":", {}
+    local pattern = string.format("([^%s]+)", sep)
+    str:gsub(pattern, function(c) fields[#fields + 1] = c end)
+    return fields
+end
+
+function emit_event_sync(event_name)
+    local rules = coyote_rules[event_name]
+    if rules == nil then
+        return
+    end
+
+    for _, rule in ipairs(rules) do
+        local value = rule:match("[%d ]+")
+        if value then
+            if rule:starts_with("增加") then
+                value = tonumber(value)
+                coyote_add_strength(value)
+            elseif rule:starts_with("减少") then
+                value = tonumber(value)
+                coyote_sub_strength(value)
+            elseif rule:starts_with("设置") then
+                value = tonumber(value)
+                coyote_set_strength(value)
+            elseif rule:starts_with("一键开火") then
+                local values = value:split(" ")
+                local strength = tonumber(values[1])
+                local time = tonumber(values[2])
+                coyote_fire(strength, time)
+            end
+        end
+    end
+end
+
+function emit_event(event_name)
+    createNativeThread(function()
+        emit_event_sync(event_name)
+    end)
+end
+
+{$asm}
+ 
+ 
+[DISABLE]
+//code from here till the end of the code will be used to disable the cheat
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>0</ID>
+          <Description>"监听1"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>loadlibrary(luaclient-x86_64.dll)
+luacall(openLuaServer('CELUASERVER'))
+
+CELUA_ServerName:
+db 'CELUASERVER',0
+
+{ Game   : Shawarma Legend
+  Version: 
+  Date   : 2024-10-04
+  Author : hyper
+
+  This script does blah blah blah
+}
+
+
+[ENABLE]
+{$lua}
+local snd_offset = 0
+local snd_header = "73 6F 6E 67 5F 64 61 79 00 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00"
+local scans = AOBScan(snd_header)
+
+if not syntaxcheck then
+    if scans[0] == nil then
+        -- print("Failed to find sound header")
+        return
+    end
+
+    snd_offset = tonumber(scans[0], 16)
+    -- print("Sound offset: " .. ("%08X"):format(snd_offset))
+end
+
+local fine_debounce = false
+local day_over_debounce = false
+
+function onsound(absolute_id)
+    local id = absolute_id - snd_offset
+    -- print("PlaySE: " .. ("%08X"):format(id) .. " (" .. ("%08X"):format(absolute_id) .. ")")
+
+    if emit_event == nil then
+        return
+    end
+
+    if id == 0x02E700 then
+        -- 卷饼不完美
+        -- print("卷饼不完美")
+        emit_event("mistake")
+    elseif id == 0x03FF00 then
+        -- 顾客没耐心离开
+        -- print("顾客没耐心离开")
+        emit_event("customer_leave")
+    elseif id == 0x48E00 then
+        -- 烤焦了
+        -- print("烤焦了")
+        emit_event("burnt")
+    elseif id == 0x4100 or id == 0x4200 or id == 0x4300 then
+        -- 顾客满意
+        if fine_debounce then
+            fine_debounce = false
+        else
+            -- print("顾客满意")
+            emit_event("fine")
+            fine_debounce = true
+        end
+    elseif id == 0x0 then
+        -- 一天结束
+        if day_over_debounce then
+            day_over_debounce = false
+        else
+            -- print("一天结束")
+            emit_event("day_over")
+            day_over_debounce = true
+        end
+    end
+end
+
+{$asm}
+aobscanmodule(PlaySound,Shawarma Legend.exe,48 8B 3A 48 ? ? ? ? 48 83 ? ? 73 ? 0F 10 07 BE 0F 00 00 00) // should be unique
+
+alloc(newmem,$1000,PlaySound)
+
+registersymbol(str_onsound)
+label(finish return on_sound str_onsound)
+
+newmem:
+on_sound:
+  push rcx
+  push rdx
+  mov rcx,str_onsound
+  mov rdx,rdi
+  sub rsp,20
+  call CELUA_ExecuteFunction
+  add rsp,20
+  pop rcx
+  pop rdx
+  jmp finish
+finish:
+  movups xmm0,[rdi]
+  mov esi,0000000F
+  jmp return
+str_onsound:
+  db 'return onsound(parameter)',0
+PlaySound+0E:
+  jmp on_sound
+  nop 3
+return:
+registersymbol(PlaySound)
+
+[DISABLE]
+
+PlaySound+0E:
+  db 0F 10 07 BE 0F 00 00 00
+
+unregistersymbol(PlaySound)
+unregistersymbol(str_onsound)
+dealloc(newmem)
+</AssemblerScript>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

@@ -24,6 +24,8 @@ local coyote_rules = {
     mistake = { "增加3", "一键开火15 5" },
     -- 烤糊了
     burnt = { "一键开火15 5" },
+    -- 乞丐没付钱
+    beggar_leave = { "一键开火15 5" },
     -- 顾客满意离开
     fine = { "减少1" },
 }
@@ -199,7 +201,7 @@ local day_over_debounce = false
 
 function onsound(absolute_id)
     local id = absolute_id - snd_offset
-    -- print("PlaySE: " .. ("%08X"):format(id) .. " (" .. ("%08X"):format(absolute_id) .. ")")
+    print("PlaySE: " .. ("%08X"):format(id) .. " (" .. ("%08X"):format(absolute_id) .. ")")
 
     if emit_event == nil then
         return
@@ -226,6 +228,9 @@ function onsound(absolute_id)
             emit_event("fine")
             fine_debounce = true
         end
+    elseif id == 0x40100 then
+        -- 乞丐没给钱
+        emit_event("beggar_leave")
     elseif id == 0x0 then
         -- 一天结束
         if day_over_debounce then

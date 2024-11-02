@@ -8,7 +8,7 @@
       <VariableType>Auto Assembler Script</VariableType>
       <AssemblerScript>[ENABLE]
 {$lua}
-coyote_connect_code = "all@http://127.0.0.1:8920/" -- 控制器链接码，本地使用时无需修改
+coyote_connect_code = "all@http://127.0.0.1:8920" -- 控制器链接码，本地使用时无需修改
 
 -- 规则配置：
 -- 基本规则是“操作+数值”，操作包括“增加”、“减少”、“设置”、“一键开火”
@@ -70,7 +70,7 @@ coyote_target_client_id, coyote_controller_url = coyote_get_connect_info(coyote_
 function coyote_api_update_strength(param_str)
     local http = getInternet()
 
-    local api_url = coyote_controller_url .. "api/v2/game/" .. coyote_target_client_id .. "/strength"
+    local api_url = coyote_controller_url .. "/api/v2/game/" .. coyote_target_client_id .. "/strength"
     local response = http.postURL(api_url, param_str)
 
     return response
@@ -137,7 +137,7 @@ function coyote_api_action_fire(strength, time, overrideTime, pulseId)
         param_str = param_str .. "&amp;pulseId=" .. pulseId
     end
 
-    local api_url = coyote_controller_url .. "api/v2/game/" .. coyote_target_client_id .. "/action/fire"
+    local api_url = coyote_controller_url .. "/api/v2/game/" .. coyote_target_client_id .. "/action/fire"
     local response = http.postURL(api_url, param_str)
     return response
 end
@@ -332,5 +332,18 @@ dealloc(newmem)
       </CheatEntries>
     </CheatEntry>
   </CheatEntries>
-  <UserdefinedSymbols/>
+  <UserdefinedSymbols>
+    <SymbolEntry>
+      <Name>tmp</Name>
+      <Address>7FFEEEEA0000</Address>
+    </SymbolEntry>
+    <SymbolEntry>
+      <Name>struct_update_status</Name>
+      <Address>1CCCBAE0000</Address>
+    </SymbolEntry>
+    <SymbolEntry>
+      <Name>randomvalue</Name>
+      <Address>6B450000</Address>
+    </SymbolEntry>
+  </UserdefinedSymbols>
 </CheatTable>

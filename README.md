@@ -13,3 +13,4 @@ A collection of cheat tables, mods that work with [Coyote-Game-Hub](https://gith
 | Shawarma Legend / 沙威玛传奇 | [Shawarma Legend Cheat Table](Cheat%20Engine/Shawarma%20Legend) |
 | 黑神话：悟空 | [Dark Myth Wukong Cheat Table](Cheat%20Engine/Dark%20Myth%20Wukong) |
 | Alice In Cradle / 爱丽丝的摇篮 | [AliceInCradle_X_DGLAB](https://github.com/sllying/AliceInCradle_X_DGLAB) |
+| DBD_QTE_go 用golang实现黎明杀机qte模拟小游戏 | [DBD_QTE_go](https://github.com/H1W0XXX/DBD_QTE_go) |

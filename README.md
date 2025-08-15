@@ -14,3 +14,4 @@ A collection of cheat tables, mods that work with [Coyote-Game-Hub](https://gith
 | 黑神话：悟空 | [Dark Myth Wukong Cheat Table](Cheat%20Engine/Dark%20Myth%20Wukong) |
 | Alice In Cradle / 爱丽丝的摇篮 | [AliceInCradle_X_DGLAB](https://github.com/sllying/AliceInCradle_X_DGLAB) |
 | DBD_QTE_go 用golang实现黎明杀机qte模拟小游戏 | [DBD_QTE_go](https://github.com/H1W0XXX/DBD_QTE_go) |
+| Minecraft x Coyote | [[1.21.1]Minecraft x Coyote.js](KubeJS/server_scripts/%5B1.21.1%5DMinecraft%20x%20Coyote.js) |

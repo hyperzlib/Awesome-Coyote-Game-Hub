@@ -1,5 +1,5 @@
 /**
- * 测试版本3 - Minecraft 1.21.1
+ * 测试版本4 - Minecraft 1.21.1
  *
  * 使用方法：
  * * /coyote - 显示所有命令
@@ -9,6 +9,9 @@
  * * 当玩家受到伤害时输出四舍五入后伤害值强度的波形；
  * * 此后，每 1s 强度衰减 1，直至归零；
  * * 若存在基础强度则衰减至基础强度。
+ * *
+ * * 当玩家死亡时输出客户端最大强度的波形；
+ * * 此后，每 1s 强度衰减 1，直至归零。
  *
  * 开源信息：
  * * 主页：https://github.com/klxf
@@ -83,28 +86,28 @@ ServerEvents.loaded(event => {
 PlayerEvents.loggedIn(event => {
     const { server, player, player: { username, uuid } } = event
     pData = event.server.persistentData
-    console.log(`${username} login! [${uuid}]`)
+    console.log(`${username} login!`)
     pData.playerTimers[uuid] = 0
     pData.coyoteConfigs[uuid] = {
+        apiHost: null,
+        clientID: null,
         fireConfig: {
             strength: 0,
             firePulse: null
         }
     }
+    console.log(pData.coyoteConfigs[uuid])
 })
 
 PlayerEvents.tick(event => {
     const { server, player, player: { username, uuid } } = event
-    //pData = event.server.persistentData
     pData.playerTimers[uuid] = (parseInt(pData.playerTimers[uuid]) + 1) % 20
     if (parseInt(pData.playerTimers[uuid]) % 20 != 0) return
-    // player.tell(`${username} 的 1s 定时器触发了！`)
-
     if (pData.coyoteConfigs[uuid].fireConfig.strength && parseInt(pData.coyoteConfigs[player.uuid].fireConfig.strength) > 0) {
         pData.coyoteConfigs[uuid].fireConfig.strength = parseInt(pData.coyoteConfigs[player.uuid].fireConfig.strength) - 1
 
-        const clientID = String(pData.coyoteConfigs[event.player.uuid].clientID).replace(/"/g, "")
-        const apiHost = String(pData.coyoteConfigs[event.player.uuid].apiHost).replace(/"/g, "")
+        const clientID = String(pData.coyoteConfigs[uuid].clientID).replace(/"/g, "")
+        const apiHost = String(pData.coyoteConfigs[uuid].apiHost).replace(/"/g, "")
         const config = {
             "strength": {
                 "sub": 1
@@ -112,13 +115,23 @@ PlayerEvents.tick(event => {
         }
 
         const fireRequest = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID + '/strength', {method: 'POST', json: config}).body)
+
+        if (fireRequest.status == 1) {
+            const gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
+            pData.coyoteConfigs[event.player.uuid].gameInfo = gameInfo
+            console.log("§6§l⚡§r §a" + gameInfo.clientStrength.strength + '§r/§c' + gameInfo.clientStrength.limit + " §7↓")
+            player.setStatusMessage("§6§l⚡§r §a" + gameInfo.clientStrength.strength + '§r/§c' + gameInfo.clientStrength.limit + " §7↓")
+        } else {
+            player.tell(fireRequest.message)
+        }
     }
 })
 
 EntityEvents.afterHurt('player', event => {
     const clientID = String(pData.coyoteConfigs[event.player.uuid].clientID).replace(/"/g, "")
     const apiHost = String(pData.coyoteConfigs[event.player.uuid].apiHost).replace(/"/g, "")
-    if (clientID) {
+
+    if (clientID != 'undefined') {
         // event.player.tell('受到伤害 ' + event.getDamage())
         let damage = event.getDamage()  // 防止强度超过 40
         if (damage > 40) {
@@ -136,8 +149,36 @@ EntityEvents.afterHurt('player', event => {
         const fireRequest = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID + '/strength', {method: 'POST', json: config}).body)
 
         if (fireRequest.status == 1) {
-            // event.player.tell(fireRequest.message)
-            // event.player.tell('开火成功')
+            const gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
+            pData.coyoteConfigs[event.player.uuid].gameInfo = gameInfo
+            event.player.setStatusMessage("§6§l⚡§r §a" + gameInfo.clientStrength.strength + '§r/§c' + gameInfo.clientStrength.limit + " §7↑")
+        } else {
+            event.player.tell(fireRequest.message)
+        }
+    }
+})
+
+EntityEvents.death('player', event => {
+    const clientID = String(pData.coyoteConfigs[event.player.uuid].clientID).replace(/"/g, "")
+    const apiHost = String(pData.coyoteConfigs[event.player.uuid].apiHost).replace(/"/g, "")
+
+    if (clientID != 'undefined') {
+        const gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
+
+        pData.coyoteConfigs[event.player.uuid].fireConfig.strength = gameInfo.clientStrength.limit
+
+        const config = {
+            "strength": {
+                "set": gameInfo.clientStrength.limit
+            }
+        }
+
+        const fireRequest = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID + '/strength', {method: 'POST', json: config}).body)
+
+        if (fireRequest.status == 1) {
+            // const gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
+            // pData.coyoteConfigs[event.player.uuid].gameInfo = gameInfo
+            // event.player.setStatusMessage("§6§l⚡§r §a" + gameInfo.clientStrength.strength + '§r/§c' + gameInfo.clientStrength.limit + " §7↑")
         } else {
             event.player.tell(fireRequest.message)
         }
@@ -158,7 +199,7 @@ ServerEvents.commandRegistry(event => {
                     return 0
                 }
 
-                const pulseList = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID + '/pulse_list', {method: 'GET'}).body).pulseList;
+                const pulseList = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID + '/pulse_list', {method: 'GET'}).body).pulseList
                 player.tell('§7§m=============§r§6§l 波形列表 §7§m=============')
                 for (const pulseListKey in pulseList) {
                     player.tell(`§a${pulseList[pulseListKey].id} §7- ${pulseList[pulseListKey].name}`)
@@ -175,7 +216,7 @@ ServerEvents.commandRegistry(event => {
 
                 if (clientID != 'undefined') {
                     try {
-                        gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body);
+                        gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
                     } catch (e) {
                         player.tell('§7[§6Coyote§7] §r§4⚠ §r出现异常：\n§c' + e)
                     }
@@ -247,24 +288,33 @@ ServerEvents.commandRegistry(event => {
                     const clientID = bindCode.split("@")[0]
                     const apiHost = bindCode.split("@")[1]
                     let gameInfo = null
-                    pData.coyoteConfigs[player.uuid].clientID = clientID
-                    pData.coyoteConfigs[player.uuid].apiHost = apiHost
-                    console.log(pData.coyoteConfigs)
+
+                    if (!clientID || !apiHost) {
+                        player.tell('§7[§6Coyote§7] §4⚠ §r客户端绑定失败：\n§c连接码格式错误')
+                        return 0
+                    }
+
                     try {
-                        gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body);
-                        console.log(gameInfo)
+                        gameInfo = JSON.parse(kubeRequest(apiHost + '/api/v2/game/' + clientID, {method: 'GET'}).body)
                     } catch (e) {
                         player.tell('§7[§6Coyote§7] §4⚠ §r客户端绑定失败：\n§c' + e)
+                        return 0
                     }
+
+                    pData.coyoteConfigs[player.uuid].gameInfo = gameInfo
+
+                    console.log(pData.coyoteConfigs[player.uuid].fireConfig.strength)
 
                     if (!gameInfo.strengthConfig) {
                         player.tell('§7[§6Coyote§7] §4⚠ §r客户端绑定失败：\n§c连接码无效无效或未开始游戏！')
-                        pData.coyoteConfigs[player.uuid].clientID = null
-                    } else {
-                        player.tell('§7[§6Coyote§7] §r已绑定客户端！')
-                        player.tell('§7[§6Coyote§7] §rHi, ' + clientID)
-                        //player.tell(gameInfo)
+                        return 0
                     }
+
+                    player.tell('§7[§6Coyote§7] §r已绑定客户端！')
+                    player.tell('§7[§6Coyote§7] §rHi, ' + clientID)
+
+                    pData.coyoteConfigs[player.uuid].clientID = clientID
+                    pData.coyoteConfigs[player.uuid].apiHost = apiHost
 
                     return 1
                 })
